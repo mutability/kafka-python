@@ -366,7 +366,14 @@ class KafkaClient(object):
         else:
             self.reset_all_metadata()
 
-        resp = self.send_metadata_request(topics)
+        try:
+            resp = self.send_metadata_request(topics)
+        except KafkaUnavailableError as e:
+            if topics:
+                raise
+            else:
+                log.error('KafkaUnavailableError attempting to load metadata for all topics')
+                return
 
         log.debug('Updating broker metadata: %s', resp.brokers)
         log.debug('Updating topic metadata: %s', resp.topics)
